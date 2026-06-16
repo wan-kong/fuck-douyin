@@ -18,9 +18,15 @@ export default defineConfig({
     monkey({
       entry: 'src/main.ts',
       userscript: {
-        icon: 'https://vitejs.dev/logo.svg',
-        namespace: 'npm/vite-plugin-monkey',
-        match: ['https://www.google.com/'],
+        name: '抖音净化 fuck-douyin',
+        description: '净化抖音网页版：视频播放器与直播间增强配置',
+        icon: 'https://lf1-cdn-tos.bytegoofy.com/goofy/ies/douyin_web/public/favicon.ico',
+        namespace: 'https://github.com/fuck-douyin',
+        match: [
+          'https://www.douyin.com/*',
+          'https://live.douyin.com/*',
+          'https://www.wankong.top/*'
+        ],
       },
       build: {
         externalGlobals: {

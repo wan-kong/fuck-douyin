@@ -1,32 +1,100 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue';
-import viteLogoUrl from './assets/vite.svg';
-import vueLogoUrl from './assets/vue.svg';
+import { ref } from 'vue';
+import FloatButton from './components/FloatButton.vue';
+import ConfigPanel from './components/ConfigPanel.vue';
+import { useDraggable } from './composables/useDraggable';
+
+const open = ref(false);
+const { pos, dragging, ready, placement, onPointerDown, wasDragged } = useDraggable();
+
+// A tap toggles the panel; a drag must not.
+function onTap() {
+  if (wasDragged()) return;
+  open.value = !open.value;
+}
 </script>
 
 <template>
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img :src="viteLogoUrl" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img :src="vueLogoUrl" class="logo vue" alt="Vue logo" />
-    </a>
+  <div class="fd-root">
+    <div
+      v-show="ready"
+      class="dock"
+      :class="[placement.vertical, placement.horizontal, { dragging }]"
+      :style="{ left: pos.x + 'px', top: pos.y + 'px' }"
+    >
+      <transition name="panel">
+        <ConfigPanel v-if="open" class="panel-slot" @close="open = false" />
+      </transition>
+      <FloatButton
+        class="fab-slot"
+        :open="open"
+        :dragging="dragging"
+        @pointerdown="onPointerDown"
+        @toggle="onTap"
+      />
+    </div>
   </div>
-  <HelloWorld msg="Vite + Vue" />
 </template>
 
 <style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+.dock {
+  position: fixed;
+  width: 48px;
+  height: 48px;
+  z-index: 2147483600;
+  /* left/top set inline from the drag composable */
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+
+.fab-slot {
+  position: absolute;
+  inset: 0;
 }
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
+
+/* panel is positioned relative to the 48x48 launcher anchor and expands toward
+   the screen, depending on which quadrant the button currently sits in */
+.panel-slot {
+  position: absolute;
+}
+.dock.up .panel-slot {
+  bottom: calc(100% + 14px);
+}
+.dock.down .panel-slot {
+  top: calc(100% + 14px);
+}
+.dock.right .panel-slot {
+  right: 0;
+}
+.dock.left .panel-slot {
+  left: 0;
+}
+
+/* spring the panel out of the button's nearest corner */
+.dock.up.right .panel-slot {
+  transform-origin: bottom right;
+}
+.dock.up.left .panel-slot {
+  transform-origin: bottom left;
+}
+.dock.down.right .panel-slot {
+  transform-origin: top right;
+}
+.dock.down.left .panel-slot {
+  transform-origin: top left;
+}
+
+.panel-enter-active {
+  transition: transform 0.36s var(--fd-ease), opacity 0.24s var(--fd-ease-out);
+}
+.panel-leave-active {
+  transition: transform 0.22s var(--fd-ease-out), opacity 0.18s var(--fd-ease-out);
+}
+.panel-enter-from,
+.panel-leave-to {
+  opacity: 0;
+  transform: translateY(12px) scale(0.92);
+}
+.dock.down .panel-enter-from,
+.dock.down .panel-leave-to {
+  transform: translateY(-12px) scale(0.92);
 }
 </style>
