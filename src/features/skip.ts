@@ -1,10 +1,9 @@
 /**
  * Auto-skip engine for the recommend feed.
  *
- * The detection rules intentionally mirror `example/jump.js`: only fully
- * visible markers in the left 2/3 of the viewport are considered. This avoids
- * Douyin's virtual-list offscreen/next-item DOM from being mistaken for the
- * currently playing video.
+ * Detection only considers markers that are fully visible in the left 2/3 of
+ * the viewport. This avoids Douyin's virtual-list offscreen/next-item DOM from
+ * being mistaken for the currently playing video.
  */
 
 import { config } from '@/config/store';
@@ -21,6 +20,12 @@ const AD_CTA_MAX_HEIGHT = 64;
 const AD_CTA_MAX_TEXT_LENGTH = 24;
 const AD_LABEL_RE = /(^|[·|｜/\\\-【[(（])(?:广告|品牌广告)([·|｜/\\\-】\])）]|$)/;
 const AD_CTA_RE = /推广|赞助|立即(了解|查看|领取|体验|下载|预约|咨询|购买)|去看看|查看详情|了解详情/;
+/**
+ * Some ads render the "广告" badge as an SVG glyph instead of text, so the
+ * text scan above can't see them. This is the leading vector signature of that
+ * glyph's `<path d="…">` — stable across ads (it's the same baked-in artwork).
+ */
+const AD_BADGE_PATH_PREFIX = 'M9.492 2.004';
 
 let isSkipping = false;
 let timer: number | undefined;
@@ -83,14 +88,11 @@ function executeSkip(): void {
 }
 
 /**
- * Ported from `example/jump.js`.
- *
  * The strict `top >= 0 && bottom <= viewport` check is deliberate: Douyin keeps
  * next/previous videos mounted in a virtual list, so partial intersection is
  * not enough to mean "current video".
  */
-function isElementInViewport(el: Element | null): boolean {
-  if (!(el instanceof HTMLElement)) return false;
+function rectInViewport(el: Element): boolean {
   const rect = el.getBoundingClientRect();
   const windowHeight = window.innerHeight || document.documentElement.clientHeight;
   const windowWidth = window.innerWidth || document.documentElement.clientWidth;
@@ -103,6 +105,13 @@ function isElementInViewport(el: Element | null): boolean {
   );
 }
 
+function isElementInViewport(el: Element | null): boolean {
+  // Guard to HTMLElement so callers passing text/comment nodes are filtered;
+  // SVG-element callers use rectInViewport directly.
+  if (!(el instanceof HTMLElement)) return false;
+  return rectInViewport(el);
+}
+
 function isInSidebar(el: Element): boolean {
   return !!(
     el.closest('[class*="drawer"]') ||
@@ -111,8 +120,25 @@ function isInSidebar(el: Element): boolean {
   );
 }
 
+function checkAdBadge(): boolean {
+  for (const path of document.querySelectorAll<SVGPathElement>(
+    `path[d^="${AD_BADGE_PATH_PREFIX}"]`,
+  )) {
+    const svg = path.closest('svg');
+    if (!svg || !rectInViewport(svg) || isInSidebar(svg)) continue;
+
+    showToast('发现广告，已跳过');
+    executeSkip();
+    return true;
+  }
+
+  return false;
+}
+
 function checkAd(): boolean {
   if (!config.video.skipAd) return false;
+
+  if (checkAdBadge()) return true;
 
   for (const el of document.querySelectorAll<HTMLElement>('button, a, div, span')) {
     if (!isElementInViewport(el) || isInSidebar(el)) continue;

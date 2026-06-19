@@ -1,8 +1,8 @@
 /**
  * Auto-select the highest available quality on Douyin's short-video player.
  *
- * Ported from `example/jump.js`: find the current quality trigger, hover it to
- * open the quality menu, then click the best available option by priority.
+ * Strategy: find the current quality trigger, hover it to open the quality
+ * menu, then click the best available option by priority.
  */
 
 import { config } from '@/config/store';

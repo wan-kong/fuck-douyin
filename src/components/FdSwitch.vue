@@ -39,16 +39,17 @@ const emit = defineEmits<{ 'update:modelValue': [boolean] }>();
 }
 .knob {
   position: absolute;
-  top: 2px;
+  top: 50%;
   left: 2px;
   width: 14px;
   height: 14px;
   border-radius: 50%;
   background: #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  transform: translateY(-50%);
   transition: transform 0.32s var(--fd-ease);
 }
 .sw.on .knob {
-  transform: translateX(14px);
+  transform: translate(14px, -50%);
 }
 </style>

@@ -1,6 +1,6 @@
 /**
- * Live-room cleanup features, based on selectors and interactions from
- * `example/live.js`.
+ * Live-room cleanup features: dynamic stylesheet for static hides, plus
+ * hover-and-click automation for the gift-effect / danmaku settings panels.
  */
 
 import { config } from '@/config/store';

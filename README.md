@@ -1,11 +1,77 @@
-# Vue 3 + TypeScript + Vite
+# 抖音净化 fuck-douyin
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+净化抖音网页版的油猴脚本：自动跳过广告 / 直播 / 购物，强制最高画质，并按需隐藏播放器侧边按钮；直播间则移除礼物横幅、礼物动画、高级弹幕等干扰元素。
 
-## Recommended IDE Setup
+所有开关都集中在页面右下角一个可拖拽的悬浮面板里，随时切换、即时生效。
 
-- [VS Code](https://code.visualstudio.com/) + [Vue - Official](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+> 技术栈是 Vue 3 + Vite，但构建产物是**单个 `.user.js` 油猴脚本**（通过 `vite-plugin-monkey` 打包），并非常规网页应用。脚本注入到 `www.douyin.com` / `live.douyin.com` 页面运行。
 
-## Type Support For `.vue` Imports in TS
+## 安装
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Vue - Official](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+1. 安装浏览器扩展 [Tampermonkey](https://www.tampermonkey.net/)（或 Greasemonkey / Violentmonkey）。
+2. 安装本脚本：
+   - **本地构建**：`pnpm install && pnpm build`，将 `dist/` 下生成的 `*.user.js` 拖入浏览器即可安装。
+3. 打开抖音网页版，页面右下角会出现悬浮按钮，点击展开配置面板。
+
+## 功能
+
+### 视频
+
+| 功能 | 默认 | 说明 |
+| --- | :---: | --- |
+| 自动跳过广告 | ✅ | 信息流刷到广告时自动下滑跳过 |
+| 自动跳过直播 | ✅ | 信息流刷到直播卡片时自动下滑跳过 |
+| 自动跳过购物 | ⬜ | 信息流刷到购物 / 带货内容时自动下滑跳过 |
+| 自动最高清晰度 | ✅ | 播放时自动切换到最高画质 |
+| 隐藏用户头像 | ⬜ | 移除播放器侧边的头像与关注入口（兼容直播头像） |
+| 隐藏点赞按钮 | ⬜ | 移除播放器侧边的点赞入口 |
+| 隐藏分享按钮 | ⬜ | 移除播放器侧边的分享入口 |
+| 隐藏收藏按钮 | ⬜ | 移除播放器侧边的收藏入口 |
+| 隐藏评论入口 | ⬜ | 移除播放器侧边的评论入口 |
+| 隐藏听抖音按钮 | ⬜ | 移除播放器侧边的“听抖音”入口 |
+| 隐藏更多按钮 | ⬜ | 移除播放器侧边的“…”更多菜单入口 |
+| 检测间隔 | 500ms | 广告 / 直播 / 购物的检测频率 |
+
+### 直播
+
+| 功能 | 默认 | 说明 |
+| --- | :---: | --- |
+| 移除礼物滚动条 | ✅ | 隐藏顶部滚动的礼物横幅 |
+| 移除礼物动画 | ✅ | 屏蔽全屏礼物特效与连击动画 |
+| 自动最高清晰度 | ✅ | 进入直播间自动切换最高画质 |
+| 移除高级弹幕 | ✅ | 屏蔽彩色 / 特效 / 付费弹幕 |
+| 移除直播间标签 | ✅ | 隐藏顶部信息栏与“更多直播”等入口 |
+| 自动屏蔽送礼信息 | ✅ | 自动开启“屏蔽送礼信息”设置 |
+| 沉浸式影院模式 | ⬜ | 暂未启用，待稳定选择器 |
+
+## 开发
+
+包管理器是 **pnpm**。
+
+```bash
+pnpm install
+pnpm dev      # Vite 开发服务器；普通浏览器下无 GM API，配置回退到 localStorage
+pnpm build    # vue-tsc 类型检查 + Vite 构建，产物输出到 dist/
+pnpm preview  # 预览构建产物
+```
+
+没有单独的 lint / test 步骤，**类型检查即是构建门槛**。
+
+### 架构速览
+
+- `src/config/schema.ts` —— 唯一的事实来源。持久化数据结构、默认值、面板每一行 UI 都由 `SCHEMA` 推导。**新增一个可配置功能 = 往 `SCHEMA` 里加一个 `ConfigItem`**。
+- `src/config/store.ts` —— `config` 是 `reactive`，深合并持久化值到 schema 默认值上，并自动持久化每次改动。
+- `src/config/storage.ts` —— 优先 `GM_getValue/GM_setValue`，回退 `localStorage`。
+- `src/features/` —— 功能落地层，读取响应式 `config` 并作用到抖音 DOM（视频按钮隐藏走动态样式表，参见 `videoActions.ts`）。
+- `src/App.vue` + `src/composables/useDraggable.ts` —— 右下角可拖拽的悬浮按钮与配置面板。
+
+## 致谢 / 参考
+
+本项目的部分功能与思路参考自以下优秀脚本：
+
+- [抖音全屏优化 自动清屏 抖音网页版优化](https://greasyfork.org/zh-CN/scripts/508672-%E6%8A%96%E9%9F%B3%E5%85%A8%E5%B1%8F%E4%BC%98%E5%8C%96-%E8%87%AA%E5%8A%A8%E6%B8%85%E5%B1%8F-%E6%8A%96%E9%9F%B3%E7%BD%91%E9%A1%B5%E7%89%88%E4%BC%98%E5%8C%96)
+- [抖音优化 强制最高画质 自动跳过 直播 广告 购物](https://greasyfork.org/zh-CN/scripts/557986-%E6%8A%96%E9%9F%B3%E4%BC%98%E5%8C%96-%E5%BC%BA%E5%88%B6%E6%9C%80%E9%AB%98%E7%94%BB%E8%B4%A8-%E8%87%AA%E5%8A%A8%E8%B7%B3%E8%BF%87-%E7%9B%B4%E6%92%AD-%E5%B9%BF%E5%91%8A-%E8%B4%AD%E7%89%A9)
+
+## 免责声明
+
+本脚本仅用于个人学习与改善浏览体验，所有改动均在本地浏览器中进行，不收集、不上传任何数据。请遵守抖音相关服务条款，风险自负。

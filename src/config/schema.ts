@@ -72,18 +72,25 @@ export const SCHEMA: ConfigGroup[] = [
         icon: 'RiShoppingCart2Line',
       },
       {
-        key: 'autoUnmute',
-        label: '自动开启声音',
-        desc: '进入页面后自动取消静音',
-        default: true,
-        icon: 'RiVolumeUpLine',
-      },
-      {
         key: 'autoHD',
         label: '自动最高清晰度',
         desc: '播放时自动切换到最高画质',
         default: true,
         icon: 'RiHdLine',
+      },
+      {
+        key: 'removeAvatar',
+        label: '隐藏用户头像',
+        desc: '移除播放器侧边的头像与关注入口',
+        default: false,
+        icon: 'RiUserLine',
+      },
+      {
+        key: 'removeLike',
+        label: '隐藏点赞按钮',
+        desc: '移除播放器侧边的点赞入口',
+        default: false,
+        icon: 'RiHeartLine',
       },
       {
         key: 'removeShare',
@@ -105,6 +112,20 @@ export const SCHEMA: ConfigGroup[] = [
         desc: '移除播放器侧边的评论入口',
         default: false,
         icon: 'RiChat3Line',
+      },
+      {
+        key: 'removeListen',
+        label: '隐藏听抖音按钮',
+        desc: '移除播放器侧边的“听抖音”入口',
+        default: false,
+        icon: 'RiHeadphoneLine',
+      },
+      {
+        key: 'removeMore',
+        label: '隐藏更多按钮',
+        desc: '移除播放器侧边的“…”更多菜单入口',
+        default: false,
+        icon: 'RiMoreLine',
       },
       {
         key: 'detectInterval',

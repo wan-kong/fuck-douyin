@@ -78,7 +78,6 @@ export default defineConfig({
           'https://www.douyin.com/*',
           'https://*.douyin.com/*',
           'https://live.douyin.com/*',
-          'https://www.wankong.top/*'
         ],
         'run-at': 'document-idle',
       },
