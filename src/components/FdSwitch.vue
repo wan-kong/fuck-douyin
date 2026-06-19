@@ -20,8 +20,8 @@ const emit = defineEmits<{ 'update:modelValue': [boolean] }>();
 <style scoped>
 .sw {
   position: relative;
-  width: 38px;
-  height: 22px;
+  width: 34px;
+  height: 20px;
   flex: 0 0 auto;
   border-radius: 999px;
   background: var(--fd-surface-active);
@@ -41,14 +41,14 @@ const emit = defineEmits<{ 'update:modelValue': [boolean] }>();
   position: absolute;
   top: 2px;
   left: 2px;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   background: #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
   transition: transform 0.32s var(--fd-ease);
 }
 .sw.on .knob {
-  transform: translateX(16px);
+  transform: translateX(14px);
 }
 </style>

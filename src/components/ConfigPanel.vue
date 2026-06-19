@@ -63,7 +63,7 @@ const activeGroup = computed(() => SCHEMA.find((g) => g.id === active.value)!);
             :key="item.key"
             :item="item"
             v-model="config[active][item.key]"
-            :disabled="!config.enabled"
+            :disabled="!config.enabled || item.disabled"
           />
         </div>
       </transition>
@@ -84,17 +84,16 @@ const activeGroup = computed(() => SCHEMA.find((g) => g.id === active.value)!);
 .panel {
   display: flex;
   flex-direction: column;
-  width: min(340px, calc(100vw - 28px));
-  max-height: min(72vh, 640px);
+  width: min(304px, calc(100vw - 24px));
+  height: min(468px, calc(100vh - 84px));
   background: var(--fd-bg);
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
-  border: 1px solid var(--fd-border-strong);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid var(--fd-border);
   border-radius: var(--fd-radius);
   box-shadow:
-    0 24px 60px -18px rgba(0, 0, 0, 0.7),
-    0 2px 8px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    0 0 24px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
   overflow: hidden;
 }
 
@@ -103,24 +102,24 @@ const activeGroup = computed(() => SCHEMA.find((g) => g.id === active.value)!);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 16px 12px;
+  padding: 12px 12px 9px;
 }
 .brand {
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 8px;
   min-width: 0;
 }
 .mark {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   flex: 0 0 auto;
-  border-radius: 10px;
-  font-size: 17px;
+  border-radius: 8px;
+  font-size: 15px;
   font-weight: 700;
-  color: #0b0b0f;
+  color: #fff;
   background: var(--fd-accent);
   box-shadow: 0 4px 14px -4px var(--fd-accent-glow);
 }
@@ -128,12 +127,12 @@ const activeGroup = computed(() => SCHEMA.find((g) => g.id === active.value)!);
   min-width: 0;
 }
 .title {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 680;
   letter-spacing: 0.02em;
 }
 .sub {
-  font-size: 11.5px;
+  font-size: 11px;
   color: var(--fd-text-dim);
   white-space: nowrap;
   overflow: hidden;
@@ -142,10 +141,10 @@ const activeGroup = computed(() => SCHEMA.find((g) => g.id === active.value)!);
 .close {
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
   flex: 0 0 auto;
-  border-radius: 8px;
+  border-radius: 7px;
   color: var(--fd-text-dim);
   transition: background 0.18s, color 0.18s;
 }
@@ -159,8 +158,8 @@ const activeGroup = computed(() => SCHEMA.find((g) => g.id === active.value)!);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 0 14px 12px;
-  padding: 11px 13px;
+  margin: 0 10px 9px;
+  padding: 8px 10px;
   border-radius: var(--fd-radius-sm);
   background: var(--fd-surface);
   border: 1px solid var(--fd-border);
@@ -175,11 +174,11 @@ const activeGroup = computed(() => SCHEMA.find((g) => g.id === active.value)!);
   gap: 1px;
 }
 .master-label {
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
 }
 .master-hint {
-  font-size: 11px;
+  font-size: 10.5px;
   color: var(--fd-text-faint);
 }
 
@@ -187,23 +186,23 @@ const activeGroup = computed(() => SCHEMA.find((g) => g.id === active.value)!);
 .tabs {
   position: relative;
   display: flex;
-  margin: 0 14px;
-  padding: 4px;
-  gap: 4px;
-  border-radius: 12px;
+  margin: 0 10px;
+  padding: 3px;
+  gap: 3px;
+  border-radius: 10px;
   background: var(--fd-surface);
   border: 1px solid var(--fd-border);
 }
 .indicator {
   position: absolute;
-  top: 4px;
-  left: 4px;
-  width: calc((100% - 8px - 4px) / 2);
-  height: calc(100% - 8px);
-  border-radius: 9px;
+  top: 3px;
+  left: 3px;
+  width: calc((100% - 6px - 3px) / 2);
+  height: calc(100% - 6px);
+  border-radius: 8px;
   background: var(--fd-surface-active);
   border: 1px solid var(--fd-border-strong);
-  transform: translateX(calc(var(--idx) * (100% + 4px)));
+  transform: translateX(calc(var(--idx) * (100% + 3px)));
   transition: transform 0.32s var(--fd-ease);
 }
 .tab {
@@ -212,10 +211,10 @@ const activeGroup = computed(() => SCHEMA.find((g) => g.id === active.value)!);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
   flex: 1;
-  padding: 8px 0;
-  font-size: 13px;
+  padding: 6px 0;
+  font-size: 12.5px;
   font-weight: 560;
   color: var(--fd-text-dim);
   transition: color 0.2s;
@@ -227,9 +226,9 @@ const activeGroup = computed(() => SCHEMA.find((g) => g.id === active.value)!);
   display: grid;
   place-items: center;
   min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  font-size: 10.5px;
+  height: 16px;
+  padding: 0 4px;
+  font-size: 10px;
   font-weight: 600;
   font-feature-settings: 'tnum';
   border-radius: 999px;
@@ -244,13 +243,14 @@ const activeGroup = computed(() => SCHEMA.find((g) => g.id === active.value)!);
 /* body */
 .body {
   flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
-  padding: 10px 8px 6px;
+  padding: 7px 6px 4px;
 }
 .list {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
 .swap-enter-active,
@@ -271,15 +271,15 @@ const activeGroup = computed(() => SCHEMA.find((g) => g.id === active.value)!);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 16px 14px;
+  padding: 8px 12px 10px;
   border-top: 1px solid var(--fd-border);
 }
 .reset {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  font-size: 12px;
+  gap: 5px;
+  padding: 5px 8px;
+  font-size: 11.5px;
   font-weight: 540;
   color: var(--fd-text-dim);
   border-radius: 8px;
@@ -290,7 +290,7 @@ const activeGroup = computed(() => SCHEMA.find((g) => g.id === active.value)!);
   color: var(--fd-text);
 }
 .ver {
-  font-size: 11px;
+  font-size: 10.5px;
   font-feature-settings: 'tnum';
   letter-spacing: 0.04em;
   color: var(--fd-text-faint);

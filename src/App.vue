@@ -39,8 +39,8 @@ function onTap() {
 <style scoped>
 .dock {
   position: fixed;
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   z-index: 2147483600;
   /* left/top set inline from the drag composable */
 }
@@ -50,16 +50,16 @@ function onTap() {
   inset: 0;
 }
 
-/* panel is positioned relative to the 48x48 launcher anchor and expands toward
+/* panel is positioned relative to the launcher anchor and expands toward
    the screen, depending on which quadrant the button currently sits in */
 .panel-slot {
   position: absolute;
 }
 .dock.up .panel-slot {
-  bottom: calc(100% + 14px);
+  bottom: calc(100% + 10px);
 }
 .dock.down .panel-slot {
-  top: calc(100% + 14px);
+  top: calc(100% + 10px);
 }
 .dock.right .panel-slot {
   right: 0;

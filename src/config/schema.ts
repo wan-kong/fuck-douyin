@@ -14,14 +14,22 @@ export type GroupId = 'video' | 'live';
 export interface ConfigItem {
   /** Stable key, unique within its group. Persisted, never rename casually. */
   key: string;
+  /** Field type. Boolean rows render a switch; number rows render an input. */
+  type?: 'boolean' | 'number';
   /** Row title shown to the user. */
   label: string;
   /** One-line explanation under the title. */
   desc: string;
   /** Default on/off state for a fresh install. */
-  default: boolean;
+  default: boolean | number;
   /** remixicon component name, resolved in the panel. */
   icon: string;
+  min?: number;
+  max?: number;
+  step?: number;
+  unit?: string;
+  disabled?: boolean;
+  disabledReason?: string;
 }
 
 export interface ConfigGroup {
@@ -45,9 +53,23 @@ export const SCHEMA: ConfigGroup[] = [
       {
         key: 'skipAd',
         label: '自动跳过广告',
-        desc: '检测到广告时自动跳过',
+        desc: '信息流刷到广告时自动下滑跳过',
         default: true,
         icon: 'RiSpam2Line',
+      },
+      {
+        key: 'skipLive',
+        label: '自动跳过直播',
+        desc: '信息流刷到直播卡片时自动下滑跳过',
+        default: true,
+        icon: 'RiLiveLine',
+      },
+      {
+        key: 'skipShop',
+        label: '自动跳过购物',
+        desc: '信息流刷到购物 / 带货内容时自动下滑跳过',
+        default: false,
+        icon: 'RiShoppingCart2Line',
       },
       {
         key: 'autoUnmute',
@@ -83,6 +105,18 @@ export const SCHEMA: ConfigGroup[] = [
         desc: '移除播放器侧边的评论入口',
         default: false,
         icon: 'RiChat3Line',
+      },
+      {
+        key: 'detectInterval',
+        type: 'number',
+        label: '检测间隔',
+        desc: '广告 / 直播 / 购物检测频率',
+        default: 500,
+        min: 100,
+        max: 5000,
+        step: 50,
+        unit: 'ms',
+        icon: 'RiRefreshLine',
       },
     ],
   },
@@ -121,6 +155,13 @@ export const SCHEMA: ConfigGroup[] = [
         icon: 'RiChatOffLine',
       },
       {
+        key: 'removeRoomInfoTags',
+        label: '移除直播间标签',
+        desc: '隐藏顶部信息栏与“更多直播”等入口',
+        default: true,
+        icon: 'RiSpam2Line',
+      },
+      {
         key: 'blockGiftMsg',
         label: '自动屏蔽送礼信息',
         desc: '自动开启“屏蔽送礼信息”设置',
@@ -130,16 +171,19 @@ export const SCHEMA: ConfigGroup[] = [
       {
         key: 'cinemaMode',
         label: '沉浸式影院模式',
-        desc: '仅保留直播画面与弹幕，移除其余元素',
+        desc: '暂未启用：直播 DOM 范围过大，待稳定选择器',
         default: false,
         icon: 'RiFullscreenLine',
+        disabled: true,
+        disabledReason: '待稳定选择器',
       },
     ],
   },
 ];
 
 /** Persisted config shape: `{ enabled, video: {...}, live: {...} }`. */
-export type GroupConfig = Record<string, boolean>;
+export type ConfigValue = boolean | number;
+export type GroupConfig = Record<string, ConfigValue>;
 export interface AppConfig {
   /** Master switch. When off, no feature is applied. */
   enabled: boolean;

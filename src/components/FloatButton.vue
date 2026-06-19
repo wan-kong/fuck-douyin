@@ -23,24 +23,23 @@ defineEmits<{ toggle: [] }>();
   place-items: center;
   width: 100%;
   height: 100%;
-  border-radius: 16px;
-  color: #0b0b0f;
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.9);
   cursor: grab;
   touch-action: none;
-  background: var(--fd-accent);
+  background: rgba(68, 68, 68, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.16);
   box-shadow:
-    0 8px 24px -6px var(--fd-accent-glow),
-    0 2px 6px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    0 0 24px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   transition: transform 0.34s var(--fd-ease), border-radius 0.34s var(--fd-ease),
     box-shadow 0.3s;
 }
 .fab:hover {
   transform: translateY(-2px) scale(1.04);
   box-shadow:
-    0 12px 30px -6px var(--fd-accent-glow),
-    0 3px 8px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    0 0 24px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 .fab:active {
   transform: scale(0.95);
@@ -55,15 +54,14 @@ defineEmits<{ toggle: [] }>();
   transition: box-shadow 0.2s;
   transform: scale(1.08);
   box-shadow:
-    0 16px 36px -6px var(--fd-accent-glow),
-    0 4px 10px rgba(0, 0, 0, 0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    0 0 24px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .mark {
   position: relative;
   z-index: 1;
-  font-size: 21px;
+  font-size: 18px;
   font-weight: 700;
   letter-spacing: 0.02em;
   transition: transform 0.3s var(--fd-ease);
@@ -75,9 +73,9 @@ defineEmits<{ toggle: [] }>();
 /* breathing accent ring on idle */
 .ring {
   position: absolute;
-  inset: -3px;
+  inset: -2px;
   border-radius: inherit;
-  border: 2px solid var(--fd-cyan);
+  border: 1px solid var(--fd-accent);
   opacity: 0;
   animation: pulse 2.8s var(--fd-ease-out) infinite;
 }

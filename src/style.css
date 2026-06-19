@@ -9,28 +9,28 @@
 @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap');
 
 .fd-root {
-  /* surfaces: near-black frosted glass, stepped elevation */
-  --fd-bg: rgba(14, 14, 18, 0.86);
-  --fd-surface: #16161c;
-  --fd-surface-hover: #1d1d24;
-  --fd-surface-active: #202028;
+  /* surfaces: aligned with Douyin's dark panel tokens */
+  --fd-bg: rgba(37, 38, 50, 0.94);
+  --fd-surface: rgba(255, 255, 255, 0.06);
+  --fd-surface-hover: rgba(255, 255, 255, 0.08);
+  --fd-surface-active: rgba(255, 255, 255, 0.12);
 
   /* hairline borders */
   --fd-border: rgba(255, 255, 255, 0.08);
   --fd-border-strong: rgba(255, 255, 255, 0.16);
 
   /* text ramp */
-  --fd-text: #f4f4f6;
-  --fd-text-dim: #9a9aa6;
-  --fd-text-faint: #66666f;
+  --fd-text: rgba(255, 255, 255, 0.9);
+  --fd-text-dim: rgba(255, 255, 255, 0.75);
+  --fd-text-faint: rgba(255, 255, 255, 0.5);
 
-  /* unified Douyin cyan as the single accent */
+  /* original cyan theme */
   --fd-cyan: #25f4ee;
   --fd-accent: #25f4ee;
   --fd-accent-glow: rgba(37, 244, 238, 0.45);
 
-  --fd-radius: 16px;
-  --fd-radius-sm: 10px;
+  --fd-radius: 12px;
+  --fd-radius-sm: 8px;
 
   --fd-ease: cubic-bezier(0.34, 1.56, 0.64, 1);
   --fd-ease-out: cubic-bezier(0.22, 1, 0.36, 1);

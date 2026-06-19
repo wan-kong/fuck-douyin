@@ -13,7 +13,7 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import { loadValue, saveValue } from '@/config/storage';
 
 const KEY = 'fd_fab_pos';
-const SIZE = 48; // launcher button size, keep in sync with FloatButton.vue
+const SIZE = 40; // launcher button size, keep in sync with FloatButton.vue
 const MARGIN = 16; // minimum gap from any viewport edge
 const DEFAULT_GAP = 22; // initial inset from bottom-right
 const DRAG_THRESHOLD = 4; // px of movement before a press counts as a drag

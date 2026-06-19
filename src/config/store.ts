@@ -31,7 +31,13 @@ function hydrate(): AppConfig {
     if (!storedGroup) continue;
     for (const item of group.items) {
       const value = storedGroup[item.key];
-      if (typeof value === 'boolean') defaults[group.id][item.key] = value;
+      const type = item.type ?? 'boolean';
+      if (type === 'boolean' && typeof value === 'boolean') {
+        defaults[group.id][item.key] = value;
+      }
+      if (type === 'number' && typeof value === 'number' && Number.isFinite(value)) {
+        defaults[group.id][item.key] = value;
+      }
     }
   }
   return defaults;
@@ -52,5 +58,5 @@ export function resetConfig(): void {
 
 /** Count of enabled features in a group, for the header summary. */
 export function activeCount(groupId: GroupId): number {
-  return Object.values(config[groupId]).filter(Boolean).length;
+  return Object.values(config[groupId]).filter((value) => value === true).length;
 }
