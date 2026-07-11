@@ -15,6 +15,7 @@ let triedQuality = false;
 let triedGiftSettings = false;
 let applyingGiftSettings = false;
 let lastRoomKey = '';
+let lastSettingsKey = '';
 
 function isLiveHost(): boolean {
   return location.hostname === 'live.douyin.com';
@@ -26,12 +27,17 @@ function enabled(key: string): boolean {
 
 function syncRoomState(): void {
   const roomKey = location.pathname;
-  if (roomKey === lastRoomKey) return;
+  const settingsKey = [
+    enabled('removeGiftAnim'),
+    enabled('removeAdvancedDanmaku'),
+    enabled('blockGiftMsg'),
+  ].join(':');
+  if (roomKey === lastRoomKey && settingsKey === lastSettingsKey) return;
 
   lastRoomKey = roomKey;
+  lastSettingsKey = settingsKey;
   triedQuality = false;
   triedGiftSettings = false;
-  applyingGiftSettings = false;
 }
 
 function css(): string {
@@ -121,67 +127,85 @@ function syncRoomInfoTags(): void {
   }
 }
 
-function targetElement(el: Element): Element {
-  if (el instanceof HTMLSlotElement && el.assignedElements) {
-    return el.assignedElements()[0] ?? el;
-  }
-  return el;
-}
-
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
-async function simulateHover(el: Element | null, delay = 500): Promise<Element | null> {
-  if (!el) return null;
-
-  const target = targetElement(el);
-  const rect = target.getBoundingClientRect();
-  const centerX = rect.left + rect.width / 2;
-  const centerY = rect.top + rect.height / 2;
-  const eventOptions = {
-    view: window,
-    bubbles: true,
-    cancelable: true,
-    clientX: centerX,
-    clientY: centerY,
-    buttons: 0,
-  };
-
-  for (const eventType of ['mouseover', 'mouseenter', 'mousemove']) {
-    target.dispatchEvent(new MouseEvent(eventType, eventOptions));
-  }
-  target.dispatchEvent(
-    new MouseEvent('mousemove', {
-      ...eventOptions,
-      clientX: centerX + 1,
-      clientY: centerY + 1,
+function dispatchMouse(el: EventTarget, type: string, x: number, y: number): void {
+  el.dispatchEvent(
+    new MouseEvent(type, {
+      view: window,
+      bubbles: true,
+      cancelable: true,
+      clientX: x,
+      clientY: y,
     }),
   );
-
-  await sleep(delay);
-  return target;
 }
 
-async function simulateLeave(el: Element | null, delay = 500): Promise<void> {
-  if (!el) return;
-
-  const target = targetElement(el);
-  const rect = target.getBoundingClientRect();
-  const eventOptions = {
-    view: window,
-    bubbles: true,
-    cancelable: true,
-    clientX: rect.left - 10,
-    clientY: rect.top - 10,
-    buttons: 0,
-  };
-
-  for (const eventType of ['mousemove', 'mouseout', 'mouseleave']) {
-    target.dispatchEvent(new MouseEvent(eventType, eventOptions));
+function simulateClick(el: Element): void {
+  const rect = el.getBoundingClientRect();
+  const x = rect.left + rect.width / 2;
+  const y = rect.top + rect.height / 2;
+  for (const type of ['mouseenter', 'mouseover', 'mousemove', 'mousedown', 'mouseup', 'click']) {
+    dispatchMouse(el, type, x, y);
   }
-  document.querySelector('.UMXOdhRc')?.dispatchEvent(new MouseEvent('mouseleave', eventOptions));
-  await sleep(delay);
+}
+
+function activatePlayer(player: HTMLElement): void {
+  player.classList.remove('douyin-player-inactive');
+  player.classList.add('douyin-player-active', 'douyin-player-focus');
+
+  const rect = player.getBoundingClientRect();
+  const x = rect.left + rect.width / 2;
+  const y = rect.top + rect.height / 2;
+  dispatchMouse(document, 'mousemove', x, y);
+  dispatchMouse(player, 'mousemove', x, y);
+}
+
+async function waitForElement<T extends Element>(selector: string, timeoutMs: number): Promise<T | null> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const element = document.querySelector<T>(selector);
+    if (element) return element;
+    await sleep(100);
+  }
+  return null;
+}
+
+async function openPanel(
+  player: HTMLElement,
+  buttonSelector: string,
+  panelSelector: string,
+): Promise<HTMLElement | null> {
+  activatePlayer(player);
+  await sleep(300);
+
+  const button = document.querySelector<HTMLElement>(buttonSelector);
+  if (!button) return null;
+
+  const playerRect = player.getBoundingClientRect();
+  const buttonRect = button.getBoundingClientRect();
+  const buttonX = buttonRect.left + buttonRect.width / 2;
+  const buttonY = buttonRect.top + buttonRect.height / 2;
+  for (const [x, y] of [
+    [playerRect.left + playerRect.width / 2, playerRect.top + playerRect.height / 2],
+    [buttonX, playerRect.top + playerRect.height * 0.85],
+    [buttonX, buttonY],
+  ]) {
+    dispatchMouse(document, 'mousemove', x, y);
+    dispatchMouse(player, 'mousemove', x, y);
+  }
+
+  await sleep(150);
+  simulateClick(button);
+  const panel = await waitForElement<HTMLElement>(panelSelector, 1200);
+  panel?.style.removeProperty('display');
+  return panel;
+}
+
+function closePanel(panel: HTMLElement): void {
+  panel.style.display = 'none';
 }
 
 function clickOriginalQuality(): boolean {
@@ -200,10 +224,9 @@ function clickOriginalQuality(): boolean {
   return false;
 }
 
-type SettingResult = 'changed' | 'settled' | 'missing';
-type GiftEffectState = 'needs-close' | 'closed';
+type SettingResult = 'changed' | 'settled' | 'missing' | 'panel-missing';
 
-function isSwitchChecked(el: HTMLElement, classHeuristic = false): boolean | undefined {
+function isSwitchChecked(el: HTMLElement): boolean | undefined {
   const attrOwner = el.matches('[aria-checked], [data-state]')
     ? el
     : el.querySelector<HTMLElement>('[aria-checked], [data-state]');
@@ -220,148 +243,119 @@ function isSwitchChecked(el: HTMLElement, classHeuristic = false): boolean | und
     : el.querySelector<HTMLInputElement>('input[type="checkbox"]');
   if (input) return input.checked;
 
-  if (classHeuristic) {
-    if (el.classList.contains('SpsbqNUm')) return true;
-    if (el.classList.length > 2) return true;
-  }
-
-  return undefined;
+  return el.classList.contains('SpsbqNUm');
 }
 
-function readGiftEffectState(el: Element | null): GiftEffectState | undefined {
-  const text = el?.textContent?.replace(/\s+/g, '');
-  if (!text) return undefined;
-  if (text.includes('屏蔽礼物特效')) return 'needs-close';
-  if (text.includes('开启礼物特效')) return 'closed';
-  return undefined;
+function findToggle(panel: HTMLElement, labelText: string): HTMLElement | null {
+  for (const label of panel.querySelectorAll<HTMLElement>('*')) {
+    if (label.children.length > 0 || !normalizeText(label).includes(labelText)) continue;
+
+    let row: HTMLElement | null = label.parentElement;
+    while (row && row !== panel) {
+      const toggle = row.querySelector<HTMLElement>('.dNuSIvAp');
+      if (toggle) return toggle;
+      row = row.parentElement;
+    }
+  }
+  return null;
 }
 
-function applyGiftEffectSwitch(): SettingResult {
-  const legacyActionText = document.querySelector<HTMLElement>(
-    '.xg-inner-controls > xg-right-grid > xg-icon:nth-child(5) div.WoNKVQmY.Z20k_Nsy',
-  );
-  const legacyButton = document.querySelector<HTMLElement>(
-    '.xg-inner-controls > xg-right-grid > xg-icon:nth-child(5) > div > div:nth-child(2)',
-  );
-  const legacyState = readGiftEffectState(legacyActionText);
-  if (legacyState === 'needs-close') {
-    (legacyButton ?? legacyActionText)?.click();
-    return 'changed';
-  }
-  if (legacyState === 'closed') {
-    return 'settled';
-  }
+async function setNamedToggle(
+  panel: HTMLElement,
+  label: string,
+  desiredOn: boolean,
+): Promise<SettingResult> {
+  const toggle = findToggle(panel, label);
+  if (!toggle) return 'missing';
+  if (isSwitchChecked(toggle) === desiredOn) return 'settled';
 
-  const giftPanel = document.querySelector<HTMLElement>(
-    'div.douyin-player-controls > div > div.douyin-player-controls-right > slot:nth-child(5) > div > div.BMrAdi9a',
-  );
-  if (!giftPanel) return 'missing';
-
-  const giftEffectSwitch = document.querySelector<HTMLElement>(
-    'div.douyin-player-controls > div > div.douyin-player-controls-right > slot:nth-child(5) > div > div.BMrAdi9a > div:nth-child(2) > div > div:nth-child(1) > div > div > div',
-  );
-  if (!giftEffectSwitch) return 'missing';
-
-  const panelState = readGiftEffectState(giftPanel);
-  if (panelState === 'needs-close') {
-    giftEffectSwitch.click();
-    return 'changed';
+  simulateClick(toggle);
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    await sleep(100);
+    if (isSwitchChecked(toggle) === desiredOn) return 'changed';
   }
-  if (panelState === 'closed') {
-    return 'settled';
-  }
-
-  const checked = isSwitchChecked(giftEffectSwitch);
-  if (checked === true) {
-    giftEffectSwitch.click();
-    return 'changed';
-  }
-  if (checked === false) {
-    return 'settled';
-  }
-
   return 'missing';
 }
 
-function applyNamedDanmakuSwitches(): SettingResult {
-  const targetNames = ['送礼信息', '福袋口令'];
-  let found = 0;
-  let changed = false;
-
-  for (const row of document.querySelectorAll<HTMLElement>('.tvFMszYY')) {
-    const label = row.querySelector<HTMLElement>('.FTgH60Qj');
-    if (!label || !targetNames.includes(label.innerText.trim())) continue;
-
-    found += 1;
-    const switchContainer = row.querySelector<HTMLElement>('.dNuSIvAp');
-    if (!switchContainer) continue;
-
-    if (isSwitchChecked(switchContainer, true) === true) {
-      switchContainer.click();
-      changed = true;
-    }
-  }
-
-  if (changed) return 'changed';
-  return found > 0 ? 'settled' : 'missing';
+function combineResults(results: SettingResult[]): SettingResult {
+  if (results.some((result) => result === 'panel-missing')) return 'panel-missing';
+  if (results.some((result) => result === 'missing')) return 'missing';
+  if (results.some((result) => result === 'changed')) return 'changed';
+  return 'settled';
 }
 
-async function withHover<T>(el: Element, callback: () => T | Promise<T>): Promise<T> {
-  await simulateHover(el);
+async function configureDanmakuPanel(player: HTMLElement): Promise<SettingResult> {
+  const targets: Array<[string, boolean]> = [];
+  if (enabled('blockGiftMsg')) {
+    targets.push(['送礼信息', false], ['福袋口令', false]);
+  }
+  if (enabled('removeAdvancedDanmaku')) targets.push(['高级弹幕', false]);
+  if (targets.length === 0) return 'settled';
+
+  const panel = await openPanel(
+    player,
+    '[data-e2e="danmaku-setting-icon"]',
+    '.UMXOdhRc',
+  );
+  if (!panel) return 'panel-missing';
+
   try {
-    return await callback();
+    const results: SettingResult[] = [];
+    for (const [label, desiredOn] of targets) {
+      results.push(await setNamedToggle(panel, label, desiredOn));
+    }
+    return combineResults(results);
   } finally {
-    await simulateLeave(el, 300);
+    await sleep(200);
+    closePanel(panel);
+  }
+}
+
+async function configureGiftPanel(player: HTMLElement): Promise<SettingResult> {
+  if (!enabled('removeGiftAnim')) return 'settled';
+
+  const panel = await openPanel(player, '[data-e2e="gift-setting"]', '.BMrAdi9a');
+  if (!panel) return 'panel-missing';
+
+  try {
+    return await setNamedToggle(panel, '屏蔽礼物特效', true);
+  } finally {
+    await sleep(200);
+    closePanel(panel);
   }
 }
 
 async function applyGiftSettings(): Promise<boolean> {
   if (
-    (!enabled('removeGiftAnim') && !enabled('blockGiftMsg')) ||
+    (!enabled('removeGiftAnim') &&
+      !enabled('removeAdvancedDanmaku') &&
+      !enabled('blockGiftMsg')) ||
     triedGiftSettings ||
     applyingGiftSettings
   ) {
     return false;
   }
-  const giftBtn = document.querySelector(
-    'div.douyin-player-controls > div > div.douyin-player-controls-right > slot:nth-child(5) > div',
-  );
-  const danmakuBtn = document.querySelector(
-    'div.douyin-player-controls > div > div.douyin-player-controls-right > slot:nth-child(6) > div > div',
-  );
-
-  if (!giftBtn && !danmakuBtn) return false;
+  const player = document.querySelector<HTMLElement>('.F5Mbv3g1');
+  if (!player) return false;
+  const runKey = `${lastRoomKey}|${lastSettingsKey}`;
   applyingGiftSettings = true;
 
-  let changed = false;
-  let settled = true;
-
   try {
-    if (enabled('removeGiftAnim')) {
-      if (!giftBtn) {
-        settled = false;
-      } else {
-        const result = await withHover(giftBtn, applyGiftEffectSwitch);
-        changed ||= result === 'changed';
-        settled &&= result !== 'missing';
-      }
-    }
+    const danmakuResult = await configureDanmakuPanel(player);
+    await sleep(500);
+    const giftResult = await configureGiftPanel(player);
+    const result = combineResults([danmakuResult, giftResult]);
 
-    if (enabled('blockGiftMsg')) {
-      if (!danmakuBtn) {
-        settled = false;
-      } else {
-        const result = await withHover(danmakuBtn, applyNamedDanmakuSwitches);
-        changed ||= result === 'changed';
-        settled &&= result !== 'missing';
-      }
+    if (
+      runKey === `${lastRoomKey}|${lastSettingsKey}` &&
+      result !== 'panel-missing'
+    ) {
+      triedGiftSettings = true;
     }
+    return result === 'changed';
   } finally {
     applyingGiftSettings = false;
   }
-
-  if (settled) triedGiftSettings = true;
-  return changed;
 }
 
 function tick(): void {
