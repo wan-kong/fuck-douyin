@@ -25,7 +25,17 @@ function enabled(key: string): boolean {
 }
 
 function css(): string {
-  const rules: string[] = [];
+  const rules: string[] = [
+    `:root{--header-height:${enabled('hideHeader') ? '0px' : '56px'};}`,
+  ];
+
+  if (enabled('hideHeader')) {
+    rules.push('#douyin-header{display:none!important;}');
+  }
+
+  if (enabled('hideNavigation')) {
+    rules.push('#douyin-navigation{display:none!important;}');
+  }
 
   if (enabled('removeAvatar')) {
     // The avatar wrapper exposes different stable hooks per variant: feed posts
@@ -104,6 +114,8 @@ export function startVideoActionsEngine(): void {
   watch(
     () => [
       config.enabled,
+      config.video.hideHeader,
+      config.video.hideNavigation,
       config.video.removeAvatar,
       config.video.removeLike,
       config.video.removeShare,

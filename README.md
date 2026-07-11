@@ -23,6 +23,8 @@
 | 自动跳过直播 | ✅ | 信息流刷到直播卡片时自动下滑跳过 |
 | 自动跳过购物 | ⬜ | 信息流刷到购物 / 带货内容时自动下滑跳过 |
 | 自动最高清晰度 | ✅ | 播放时自动切换到最高画质 |
+| 隐藏顶部栏 | ⬜ | 隐藏页面顶部栏，并将 `--header-height` 从 56px 调整为 0px |
+| 隐藏导航栏 | ⬜ | 隐藏页面左侧导航栏 |
 | 隐藏用户头像 | ⬜ | 移除播放器侧边的头像与关注入口（兼容直播头像） |
 | 隐藏点赞按钮 | ⬜ | 移除播放器侧边的点赞入口 |
 | 隐藏分享按钮 | ⬜ | 移除播放器侧边的分享入口 |
@@ -62,7 +64,7 @@ pnpm preview  # 预览构建产物
 - `src/config/schema.ts` —— 唯一的事实来源。持久化数据结构、默认值、面板每一行 UI 都由 `SCHEMA` 推导。**新增一个可配置功能 = 往 `SCHEMA` 里加一个 `ConfigItem`**。
 - `src/config/store.ts` —— `config` 是 `reactive`，深合并持久化值到 schema 默认值上，并自动持久化每次改动。
 - `src/config/storage.ts` —— 优先 `GM_getValue/GM_setValue`，回退 `localStorage`。
-- `src/features/` —— 功能落地层，读取响应式 `config` 并作用到抖音 DOM（视频按钮隐藏走动态样式表，参见 `videoActions.ts`）。
+- `src/features/` —— 功能落地层，读取响应式 `config` 并作用到抖音 DOM（视频按钮隐藏走动态样式表，参见 `videoActions.ts`）。顶部栏和导航栏默认显示；开启对应开关后分别隐藏，顶部栏隐藏时 `--header-height` 会从 `56px` 同步调整为 `0px`。
 - `src/App.vue` + `src/composables/useDraggable.ts` —— 右下角可拖拽的悬浮按钮与配置面板。
 
 ## 致谢 / 参考

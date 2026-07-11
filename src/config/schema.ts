@@ -79,6 +79,20 @@ export const SCHEMA: ConfigGroup[] = [
         icon: 'RiHdLine',
       },
       {
+        key: 'hideHeader',
+        label: '隐藏顶部栏',
+        desc: '隐藏页面顶部栏，并释放其占用的 56px 高度',
+        default: false,
+        icon: 'RiFullscreenLine',
+      },
+      {
+        key: 'hideNavigation',
+        label: '隐藏导航栏',
+        desc: '隐藏页面左侧导航栏',
+        default: false,
+        icon: 'RiSpam2Line',
+      },
+      {
         key: 'removeAvatar',
         label: '隐藏用户头像',
         desc: '移除播放器侧边的头像与关注入口',
